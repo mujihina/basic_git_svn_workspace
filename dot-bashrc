@@ -1,0 +1,112 @@
+# .bashrc
+# .bash basic template
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
+export HISTIGNORE="&:ls:exit:lo:ll:history"
+export HISTCONTROL=erasedups
+export HISTSIZE=10000
+
+export PAGER='less'
+export EDITOR='vim'
+
+# colors
+# Lots of other colors:  http://misc.flogisoft.com/bash/tip_colors_and_formatting
+reset="\[\033[0m\]"
+blue="\[\033[0;34m\]"
+green="\[\033[0;32m\]"
+purple="\[\033[0;35m\]"
+red="\[\033[0;31m\]"
+white="\[\033[0;37m\]"
+yellow="\[\033[0;33m\]"
+boldred="\[\033[1;91m\]"
+
+PROMPT_DIRTRIM=3
+# Generated prompt has format:
+# user@server (GIT and SVN repo info) (last 3 dirs of CWD) $(or #)
+# each element has different colors. The trailing "$" or "#" will be green or red depending on exit code of last command
+
+PROMPT_COMMAND=__generate_ps1
+
+GIT_CMD=$(type -P git 2>/dev/null)
+SVN_CMD=$(type -P svn 2>/dev/null)
+
+# set prompt to 'git:REPONAME:BRANCHNAME' or 'git:REPONAME:BRANCHNAME *' if new local changes 
+function __git_prompt()
+{
+    # If no git, don't try any of this.
+    if [ ${GIT_CMD} ];
+    then
+	# got to handle http and ssh repos.
+        REPO=$(${GIT_CMD} remote -v 2>/dev/null | grep '(push)' | awk '{print $2}' | tr '[:/]' ' ' | awk 'NF>0{print $NF}' | sed -e 's/\.git$//')
+        if [[ -n "${REPO}" ]];
+        then
+            BRANCH=$(${GIT_CMD} status --porcelain -b 2>/dev/null| grep '##' | awk '{print $2}')
+            MODIFIED=$(${GIT_CMD} status --porcelain 2>/dev/null)
+            if [[ -n "${MODIFIED}" ]];
+            then
+                BRANCH="${BRANCH} *"
+            fi
+            echo " (git:${REPO}:${BRANCH})"
+        fi
+    fi
+}
+
+# set prompt to 'svn:REPONAME' or 'svn:REPONAME *' if new local changes 
+function __svn_prompt()
+{
+    # If no svn, don't try any of this.
+    if [ ${SVN_CMD} ];
+    then
+        REPO=$(${SVN_CMD} info 2>/dev/null | grep 'URL:' | sed -e 's/.*\///')
+        if [[ -n "${REPO}" ]];
+        then
+            MODIFIED=$(${SVN_CMD} status -q 2>/dev/null)
+            if [[ -n "${MODIFIED}" ]];
+            then
+                REPO="${REPO} *"
+            fi
+            echo " (svn:$REPO)"
+        fi
+    fi
+}
+
+function __generate_ps1()
+{
+    local lastcode=$?
+    # defaults
+    local usercolor=${green}
+    local lastcodecolor=${green}
+    local hostcolor=${blue}
+    local repocolor=${purple}
+    local cwdcolor=${blue}
+
+    local svn_string=$(__svn_prompt)
+    local git_string=$(__git_prompt)
+    # red for uid 0
+    if [ ${UID} -eq 0 ]; then
+        usercolor=${red}
+    fi
+    # red for $? on last command != 0
+    if [ ${lastcode} -ne 0 ];
+    then
+        lastcodecolor=${red}
+    fi
+   
+    PS1="${usercolor}\u@${hostcolor}\h${repocolor}${git_string}${svn_string}${cwdcolor} \w ${lastcodecolor}$ ${reset}"
+}
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ls='ls --color=auto'
+alias ll='ls -l'
+alias la='ls -la'
+alias egrep='egrep --color=auto'
+alias grep='grep --color=auto'
+
+umask 0022
