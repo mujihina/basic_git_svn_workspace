@@ -16,21 +16,21 @@ user@server [(svn|git details) [*]] dirpath $
 
 
 
-When in a normal directory, your prompt would look like this:
+When in a normal directory, your prompt would look like this (without the colors):
 
 ```
 mujihina@kotatsu /var/log $
 ```
 
 
-When in a directory with a git repository, your prompt would look like this:
+When in a directory with a git repository, your prompt would look like this (without the colors):
 ```
 mujihina@kotatsu (git:databasesweeper:master) ~/repos/dbsweeper $ echo 'test' >> file
 mujihina@kotatsu (git:databasesweeper:master *) ~/repos/dbsweeper $
 ```
 
 
-When in a directory with an svn repository, your prompt would look like this:
+When in a directory with an svn repository, your prompt would look like this (without the colors):
 ```
 mujihina@kotatsu (svn:hooksrepo) ~/repos/svnhooks $ echo 'test' >> file
 mujihina@kotatsu (svn:hooksrepo *) ~/repos/svnhooks $
